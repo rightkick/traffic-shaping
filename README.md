@@ -1,2 +1,2 @@
-# traffic-shapping
+# traffic-shaping
 Traffic Shaping script

@@ -127,7 +127,7 @@ case "${1}" in
 			tc filter add dev ifb0 parent 2: protocol ip u32 match ip src "${WANIP2}" flowid 2:12 || warn_print error at line $LINENO
 		done
 		;;
-	"--help")
+	"help")
 		print_help;
 		;;
 	*)

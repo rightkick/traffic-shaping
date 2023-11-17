@@ -41,7 +41,7 @@ echo "$timestamp: $base: traffic shaper started" >> $log
 # Do the job
 if [ "${1}" = "clear" ];then
 	for DEV in {$SAT1,$SAT2};do
-		echo "Cleaning traffic queues on $DEV"
+		echo "Cleaning traffic queues on interface $DEV"
 		tc qdisc del dev $DEV root > /dev/null 2>&1
 		tc qdisc del dev ifb0 root > /dev/null 2>&1
 	done
@@ -49,7 +49,7 @@ if [ "${1}" = "clear" ];then
 else
 	for DEV in $SAT1;do
 
-		echo "DEV: " $DEV
+		echo "Applying traffic shaping at interface: " $DEV
 		tc qdisc del dev $DEV root > /dev/null 2>&1 || echo error at line $LINENO
 
 		tc qdisc add dev $DEV parent root handle 1: hfsc default 10 || echo error at line $LINENO

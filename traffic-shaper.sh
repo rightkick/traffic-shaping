@@ -13,19 +13,18 @@ log=/var/log/shaper
 base=`basename "$0"`
 
 # Interfaces to apply traffic shaping
-WAN=enp2s0
-SAT1=enp3s0
-SAT2=enp4s0
+WAN=enp1s0
+SATELLITE_IFS=('enp3s0')
 
 # Define you link characteristics below and the WAN IP of the client device you need to shape.
 # Satellite 1
 down1=128kbit
 up1=128kbit
-latency1=1000ms
+latency1=1900ms
 deviation1=100ms
 packet_loss1=3%
 # The IP of the client WAN1 port
-WANIP1=192.168.28.64
+WANIP1=172.31.0.151
 
 # Satellite 2
 down2=512kbit
@@ -51,28 +50,33 @@ warn_print()
     echo -e "\e[33m\e[33m$1\e[33m\e[0m"
 }
 
-info_print "$timestamp: $base: traffic shaper started" >> $log
+
 
 
 # Do the job
 case "${1}" in
 	"stop")
-		for DEV in {$SAT1,$SAT2,ifb0};do
-			info_print "Cleaning traffic queues on interface $DEV"
+		SATELLITE_IFS+=(ifb0)
+		for DEV in "${SATELLITE_IFS[@]}" ;do
+			info_print "Cleaning traffic queues on interface $DEV" | tee >> $log
 			tc qdisc del dev $DEV root > /dev/null 2>&1
 		done
 		exit 0
 		;;
 	"stats")
-		for DEV in {$SAT1,$SAT2,ifb0};do
-			info_print "QoS stats at interface $DEV"
+		SATELLITE_IFS+=(ifb0)
+		for DEV in "${SATELLITE_IFS[@]}";do
+			info_print "QoS stats at interface $DEV" | tee >> $log
 			tc -s qdisc show dev $DEV
 		done
+		exit 0
 		;;
 	"start")
-		for DEV in {$SAT1,$SAT2};do
+		info_print "$timestamp: $base: traffic shaper started" | tee >> $log
+		for DEV in "${SATELLITE_IFS[@]}";do
 
-			info_print "Applying traffic shaping at interface: " $DEV
+			info_print "Applying traffic shaping at interface: $DEV" | tee >> $log
+			
 			tc qdisc del dev $DEV root > /dev/null 2>&1
 
 			tc qdisc add dev $DEV parent root handle 1: hfsc default 10 || warn_print error at line $LINENO
@@ -126,6 +130,7 @@ case "${1}" in
 			tc filter add dev $DEV parent ffff: protocol ip u32 match ip src "${WANIP2}" action mirred egress redirect dev ifb0
 			tc filter add dev ifb0 parent 2: protocol ip u32 match ip src "${WANIP2}" flowid 2:12 || warn_print error at line $LINENO
 		done
+		info_print "$timestamp: $base: traffic shaper completed" >> $log
 		;;
 	"help")
 		print_help;
@@ -135,4 +140,3 @@ case "${1}" in
 		;;
 esac
 
-info_print "$timestamp: $base: traffic shaper completed" >> $log

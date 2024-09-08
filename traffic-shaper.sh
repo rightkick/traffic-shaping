@@ -12,9 +12,9 @@ timestamp=`date +"%b %d %H:%M:%S"`
 log=/var/log/shaper
 base=`basename "$0"`
 
-# Interfaces to apply traffic shaping
-WAN=enp1s0
-SATELLITE_IFS=('enp3s0')
+# Interfaces
+WAN=enp1s0 # This is the WAN interface for internet access
+SATELLITE_IFS=('enp3s0') # This is a space sperated list of internal LAN interfaces where traffic shaping is applied to client devices. 
 
 # Define you link characteristics below and the WAN IP of the client device you need to shape.
 # Satellite 1
